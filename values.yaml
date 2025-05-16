@@ -594,8 +594,27 @@ core:
   # - name: wait
   #   image: busybox
   #   command: [ 'sh', '-c', "sleep 20" ]
-  ## User settings configuration json string
-  configureUserSettings:
+
+  # Removed configureUserSettings
+  # Replaced it with OIDC support (https://goharbor.io/docs/2.3.0/install-config/configure-user-settings-cli/)
+  oidc: {}
+  # name: "google"
+  # endpoint: "https://accounts.google.com"
+  # clientId:
+  #   value: ""
+  #   secretKeyRef:
+  #     name: ""
+  #     namespace: ""
+  #     key: ""
+  # clientSecret:
+  #   value: ""
+  #   secretKeyRef:
+  #     name: ""
+  #     namespace: ""
+  #     key: ""
+  # scope: ""
+  # verify_cert: ""
+
   # The provider for updating project quota(usage), there are 2 options, redis or db.
   # By default it is implemented by db but you can configure it to redis which
   # can improve the performance of high concurrent pushing to the same project,
