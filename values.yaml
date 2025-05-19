@@ -613,7 +613,12 @@ core:
   #     namespace: ""
   #     key: ""
   # scope: ""
-  # verify_cert: ""
+  # verifyCert: ""
+  # groupsClaim: ""
+  # adminGroup: ""
+  # autoOnboard: ""
+  # userClaim: ""
+  # extraRedirectParams: ""
 
   # The provider for updating project quota(usage), there are 2 options, redis or db.
   # By default it is implemented by db but you can configure it to redis which
