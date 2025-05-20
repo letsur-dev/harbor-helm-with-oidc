@@ -28,5 +28,5 @@ entries:
     - https://github.com/goharbor/harbor-helm
     urls:
     - https://github.com/letsur-dev/harbor-helm-with-oidc/tree/v0.1.0/packages/harbor-helm-with-oidc-v0.1.0.tgz
-    version: "0.1.0"
+    version: 0.1.0-stable
 generated: "2025-05-20T16:06:09.049876+09:00"
