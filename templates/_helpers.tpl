@@ -193,7 +193,11 @@ app: "{{ template "harbor.name" . }}"
 {{- define "harbor.redis.cred" -}}
   {{- with .Values.redis }}
     {{- if (and (eq .type "external" ) (.external.existingSecret)) }}
-      {{- printf ":%s@" (include "harbor.redis.pwdfromsecret" $) }}
+      {{- if (.external.username) }}
+        {{- printf "%s:%s@" .external.username (include "harbor.redis.pwdfromsecret" $) }}
+      {{- else }}
+        {{- printf ":%s@" (include "harbor.redis.pwdfromsecret" $) }}
+      {{- end }}
     {{- else }}
       {{- ternary (printf "%s:%s@" (.external.username | urlquery) (.external.password | urlquery)) "" (and (eq .type "external" ) (not (not .external.password))) }}
     {{- end }}
