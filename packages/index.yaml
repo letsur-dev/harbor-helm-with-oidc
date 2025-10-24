@@ -3,10 +3,10 @@ entries:
   harbor:
   - apiVersion: v1
     appVersion: dev
-    created: "2025-10-24T14:44:45.655719+09:00"
+    created: "2025-10-24T15:04:39.829446+09:00"
     description: An open source trusted cloud native registry that stores, signs,
       and scans content
-    digest: c28b6c947c9d9bda3143920434ec560d8a769d5eefc143972996c030f884af4b
+    digest: 3547efa6f4ae8a15e7d309b132ac5c9ae32c47bda8d934848f2a33ae8d5dbce2
     home: https://goharbor.io
     icon: https://raw.githubusercontent.com/goharbor/website/main/static/img/logos/harbor-icon-color.png
     keywords:
@@ -31,7 +31,7 @@ entries:
     version: 0.1.2
   - apiVersion: v1
     appVersion: dev
-    created: "2025-10-24T14:44:45.65239+09:00"
+    created: "2025-10-24T15:04:39.825195+09:00"
     description: An open source trusted cloud native registry that stores, signs,
       and scans content
     digest: 166a6dc694849f783d33a788a0870a38ccafb3576952cfb18a0458f7440b3a05
@@ -57,4 +57,4 @@ entries:
     urls:
     - https://letsur-dev.github.io/harbor-helm-with-oidc/packages/harbor-0.1.1.tgz
     version: 0.1.1
-generated: "2025-10-24T14:44:45.647907+09:00"
+generated: "2025-10-24T15:04:39.821305+09:00"

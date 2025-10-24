@@ -966,7 +966,7 @@ database:
     username: "user"
     password: "password"
     coreDatabase: "registry"
-    # if using existing secret, the key must be "password"
+    # if using existing secret, the key must be "POSTGRES_PASSWORD"
     existingSecret: ""
     # "disable" - No SSL
     # "require" - Always SSL (skip verification)
