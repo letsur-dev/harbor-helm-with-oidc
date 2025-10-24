@@ -86,6 +86,12 @@ spec:
             secretKeyRef:
               name: {{ .Values.database.external.existingSecret }}
               key: password
+        {{- else if .Values.database.internal.existingSecret }}
+        - name: HARBOR_DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.internal.existingSecret }}
+              key: POSTGRES_PASSWORD
         {{- end }}
         {{- if .Values.existingSecretAdminPassword }}
         - name: HARBOR_ADMIN_PASSWORD
