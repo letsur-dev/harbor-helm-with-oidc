@@ -1,0 +1,24 @@
+apiVersion: v1
+entries:
+  harbor:
+  - apiVersion: v1
+    appVersion: dev
+    created: "2026-02-11T04:34:23.909621966Z"
+    description: An open source trusted cloud native registry that stores, signs,
+      and scans content
+    digest: 85cb57a51aa79cee52571136c52657913c780b3718714e899a3e315cba0bab04
+    home: https://goharbor.io
+    icon: https://raw.githubusercontent.com/goharbor/website/main/static/img/logos/harbor-icon-color.png
+    keywords:
+    - docker
+    - registry
+    - harbor
+    name: harbor
+    sources:
+    - https://github.com/letsur-dev/harbor-helm-with-oidc
+    - https://github.com/goharbor/harbor
+    - https://github.com/goharbor/harbor-helm
+    urls:
+    - https://letsur-dev.github.io/harbor-helm-with-oidc/harbor-0.1.2.tgz
+    version: 0.1.2
+generated: "2026-02-11T04:34:23.905047099Z"
