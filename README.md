@@ -1,12 +1,14 @@
-# Helm Chart for Harbor
+# Harbor Helm Chart with OIDC Support
 
-**Notes:** The master branch is in heavy development, please use the other stable versions instead. A highly available solution for Harbor based on chart can be found [here](docs/High%20Availability.md). And refer to the [guide](docs/Upgrade.md) to upgrade the existing deployment.
+This is a fork of [goharbor/harbor-helm](https://github.com/goharbor/harbor-helm) with built-in OIDC authentication support. The original `core.configureUserSettings` (JSON) has been replaced with a structured `core.oidc` configuration that supports Kubernetes Secret references for sensitive credentials.
 
-This repository, including the issues, focuses on deploying Harbor chart via helm. For functionality issues or Harbor questions, please open issues on [goharbor/harbor](https://github.com/goharbor/harbor)
+A highly available solution for Harbor based on chart can be found [here](docs/High%20Availability.md). And refer to the [guide](docs/Upgrade.md) to upgrade the existing deployment.
+
+For Harbor functionality issues, please open issues on [goharbor/harbor](https://github.com/goharbor/harbor). For OIDC chart-specific issues, use [this repository](https://github.com/letsur-dev/harbor-helm-with-oidc/issues).
 
 ## Introduction
 
-This [Helm](https://github.com/kubernetes/helm) chart installs [Harbor](https://github.com/goharbor/harbor) in a Kubernetes cluster. Welcome to [contribute](CONTRIBUTING.md) to Helm Chart for Harbor.
+This [Helm](https://github.com/kubernetes/helm) chart installs [Harbor](https://github.com/goharbor/harbor) in a Kubernetes cluster with OIDC authentication support.
 
 ## Prerequisites
 
@@ -18,7 +20,7 @@ This [Helm](https://github.com/kubernetes/helm) chart installs [Harbor](https://
 ### Add Helm repository
 
 ```bash
-helm repo add harbor https://helm.goharbor.io
+helm repo add harbor-oidc https://letsur-dev.github.io/harbor-helm-with-oidc
 ```
 
 ### Configure the chart
@@ -63,7 +65,7 @@ If Harbor is deployed behind the proxy, set it as the URL of proxy.
 Install the Harbor helm chart with a release name `my-release`:
 
 ```bash
-helm install my-release harbor/harbor
+helm install my-release harbor-oidc/harbor
 ```
 
 ## Uninstallation
@@ -235,7 +237,7 @@ The following table lists the configurable parameters of the Harbor chart and th
 | `core.topologySpreadConstraints`                                     | Constraints that define how Pods are spread across failure-domains like regions or availability zones                                                                                                                                                                                                                                                                                                                                                                                                                               | `[]`                                                                     |
 | `core.podAnnotations`                                                | Annotations to add to the core pod                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | `{}`                                                                     |
 | `core.serviceAnnotations`                                            | Annotations to add to the core service                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | `{}`                                                                     |
-| `core.configureUserSettings`                                         | A JSON string to set in the environment variable `CONFIG_OVERWRITE_JSON` to configure user settings. See the [official docs](https://goharbor.io/docs/latest/install-config/configure-user-settings-cli/#configure-users-settings-using-an-environment-variable).                                                                                                                                                                                                                                                                   |                                                                          |
+| `core.oidc`                                                          | OIDC authentication configuration object. See [OIDC Configuration](#oidc-configuration) below.                                                                                                                                                                                                                                                                                                                                                                                                                                     | `{}`                                                                     |
 | `core.quotaUpdateProvider`                                           | The provider for updating project quota(usage), there are 2 options, `redis` or `db`. You can set it to be implemented by `redis` which can improve the performance of high concurrent pushing to the same project, and reduce database connection spikes and occupies. Using redis will bring up some delay for quota usage update for display, so only suggest switch provider to redis if you ran into the db connections spike around the scenario of high concurrent pushing to same project, no improvement for other scenes. | `db`                                                                     |
 | `core.secret`                                                        | Secret is used when core server communicates with other components. If a secret key is not specified, Helm will generate one. Must be a string of 16 chars.                                                                                                                                                                                                                                                                                                                                                                         |                                                                          |
 | `core.secretName`                                                    | Fill the name of a kubernetes secret if you want to use your own TLS certificate and private key for token encryption/decryption. The secret must contain keys named: `tls.crt` - the certificate and `tls.key` - the private key. The default key pair will be used if it isn't set                                                                                                                                                                                                                                                |                                                                          |
@@ -422,6 +424,52 @@ The following table lists the configurable parameters of the Harbor chart and th
 | `cache.enabled`                                                      | Enable cache layer or not                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `false`                                                                  |
 | `cache.expireHours`                                                  | The expire hours of cache layer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | `24`                                                                     |
 
+## OIDC Configuration
+
+This chart replaces the upstream `core.configureUserSettings` with a structured `core.oidc` configuration. Sensitive values (`clientId`, `clientSecret`) can reference existing Kubernetes Secrets instead of being stored in plain text in values.
+
+### Example
+
+```yaml
+core:
+  oidc:
+    name: "google"
+    endpoint: "https://accounts.google.com"
+    clientId:
+      secretKeyRef:
+        name: "harbor-oidc-secret"
+        key: "client-id"
+    clientSecret:
+      secretKeyRef:
+        name: "harbor-oidc-secret"
+        key: "client-secret"
+    scope: "openid profile email"
+    verifyCert: true
+    autoOnboard: true
+    userClaim: "sub"
+    groupsClaim: "groups"
+    adminGroup: "harbor-admins"
+```
+
+### Parameters
+
+| Parameter | Description | Required |
+|---|---|---|
+| `core.oidc.name` | OIDC provider name (e.g. `google`, `keycloak`) | Yes |
+| `core.oidc.endpoint` | OIDC provider endpoint URL | Yes |
+| `core.oidc.clientId.value` | Client ID (plain text) | One of `value` or `secretKeyRef` |
+| `core.oidc.clientId.secretKeyRef.name` | Secret name containing client ID | |
+| `core.oidc.clientId.secretKeyRef.key` | Key in the secret | |
+| `core.oidc.clientSecret.value` | Client secret (plain text) | One of `value` or `secretKeyRef` |
+| `core.oidc.clientSecret.secretKeyRef.name` | Secret name containing client secret | |
+| `core.oidc.clientSecret.secretKeyRef.key` | Key in the secret | |
+| `core.oidc.scope` | OIDC scopes | No |
+| `core.oidc.verifyCert` | Verify OIDC provider certificate | No |
+| `core.oidc.autoOnboard` | Auto-create user on first login | No |
+| `core.oidc.userClaim` | OIDC claim for username | No |
+| `core.oidc.groupsClaim` | OIDC claim for groups | No |
+| `core.oidc.adminGroup` | Group name granted admin access | No |
+| `core.oidc.extraRedirectParams` | Extra redirect parameters | No |
 
 ### Harbor Kubernetes Version Compatibility Matrix
 

@@ -1,4 +1,4 @@
-name: Publish Release
+name: Release Helm Chart
 
 on:
   push:
@@ -8,40 +8,62 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.ref }}
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Helm
-        uses: azure/setup-helm@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-        id: install
-      - name: Helm Package
-        run: echo "PACKAGE_PATH=$(helm package . | awk '{print $NF}')" >> $GITHUB_ENV
-      - name: Publish Helm Chart
+        uses: azure/setup-helm@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Set version in Chart.yaml
         run: |
-          helm registry login registry-1.docker.io -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          helm push ${{ env.PACKAGE_PATH }} oci://registry-1.docker.io/${{ secrets.DOCKER_HUB_USERNAME }}
-          helm registry login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-          helm push ${{ env.PACKAGE_PATH }} oci://ghcr.io/${{ github.actor }}
-      - name: Upload to chart repository
+          VERSION="${{ steps.version.outputs.value }}"
+          sed -i "s/^version:.*/version: \"${VERSION}\"/" Chart.yaml
+
+      - name: Package chart
+        run: helm package .
+
+      - name: Create GitHub Release
         run: |
-          git config --global user.email "${{ github.event.repository.name }}@users.noreply.github.com"
-          git config --global user.name "${{ github.event.repository.name }} CI"
-          git fetch origin chart-repository
-          git checkout chart-repository
-          mkdir -p ../helm-temp
-          cd ../helm-temp
-          cp ${{ env.PACKAGE_PATH }} .
-          helm repo index --merge ../harbor-helm/index.yaml .
-          mv ./* ../harbor-helm
-          cd ../harbor-helm
-          git add .
-          git commit -s -m "feat: Upload Harbor ${{ github.ref }} to chart repository"
-          git push origin chart-repository
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ${{ env.PACKAGE_PATH }}
+          gh release create "${{ github.ref_name }}" \
+            harbor-${{ steps.version.outputs.value }}.tgz \
+            --title "harbor-${{ steps.version.outputs.value }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update gh-pages index
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            git fetch origin gh-pages
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf .
+          fi
+
+          gh release download "${{ github.ref_name }}" \
+            --pattern "*.tgz" --dir .
+
+          REPO_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          if [ -f index.yaml ]; then
+            helm repo index . --url "$REPO_URL" --merge index.yaml
+          else
+            helm repo index . --url "$REPO_URL"
+          fi
+
+          git add index.yaml *.tgz
+          git commit -m "Release harbor-${{ steps.version.outputs.value }}"
+          git push origin gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

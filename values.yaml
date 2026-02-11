@@ -625,8 +625,8 @@ core:
   #   image: busybox
   #   command: [ 'sh', '-c', "sleep 20" ]
 
-  # Removed configureUserSettings
-  # Replaced it with OIDC support (https://goharbor.io/docs/2.3.0/install-config/configure-user-settings-cli/)
+  # OIDC authentication configuration
+  # See README.md for full parameter documentation
   oidc: {}
   # name: "google"
   # endpoint: "https://accounts.google.com"
