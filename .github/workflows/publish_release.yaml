@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.1.2)'
+        required: true
 
 jobs:
   release:
@@ -14,13 +19,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
 
-      - name: Extract version from tag
+      - name: Extract version
         id: version
-        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "value=${TAG#v}" >> "$GITHUB_OUTPUT"
 
       - name: Set version in Chart.yaml
         run: |
@@ -32,7 +42,7 @@ jobs:
 
       - name: Create GitHub Release
         run: |
-          gh release create "${{ github.ref_name }}" \
+          gh release create "${{ steps.version.outputs.tag }}" \
             harbor-${{ steps.version.outputs.value }}.tgz \
             --title "harbor-${{ steps.version.outputs.value }}" \
             --generate-notes
@@ -52,7 +62,7 @@ jobs:
             git rm -rf .
           fi
 
-          gh release download "${{ github.ref_name }}" \
+          gh release download "${{ steps.version.outputs.tag }}" \
             --pattern "*.tgz" --dir .
 
           REPO_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
