@@ -135,6 +135,12 @@ spec:
             secretKeyRef:
               name: {{ .Values.redis.external.existingSecret }}
               key: REDIS_PASSWORD
+        - name: REGISTRY_REDIS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.redis.external.existingSecret }}
+              key: REDIS_USERNAME
+              optional: true
         {{- end }}
         {{- if .Values.persistence.imageChartStorage.azure.existingSecret }}
         - name: REGISTRY_STORAGE_AZURE_ACCOUNTKEY
@@ -291,6 +297,12 @@ spec:
             secretKeyRef:
               name: {{ .Values.redis.external.existingSecret }}
               key: REDIS_PASSWORD
+        - name: REGISTRY_REDIS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.redis.external.existingSecret }}
+              key: REDIS_USERNAME
+              optional: true
         {{- end }}
         {{- if .Values.persistence.imageChartStorage.azure.existingSecret }}
         - name: REGISTRY_STORAGE_AZURE_ACCOUNTKEY

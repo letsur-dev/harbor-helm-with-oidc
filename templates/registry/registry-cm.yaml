@@ -179,6 +179,9 @@ data:
       {{- if not (eq (include "harbor.redis.password" .) "") }}
       password: {{ template "harbor.redis.password" . }}
       {{- end }}
+      {{- if and (eq .Values.redis.type "external") .Values.redis.external.username }}
+      username: {{ .Values.redis.external.username }}
+      {{- end }}
       readtimeout: 10s
       writetimeout: 10s
       dialtimeout: 10s
